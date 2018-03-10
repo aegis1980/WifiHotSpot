@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Wifi HotSpot</string>
+
+
+    <string name="intent_action_turnon">com.fitc.wifihotspot.TURN_ON</string>
+    <string name="intent_action_turnoff">com.fitc.wifihotspot.TURN_OFF</string>
+
+    <string name="intent_data_scheme">wifihotspot</string>
+    <string name="intent_data_host_turnon">turnon</string>
+    <string name="intent_data_host_turnoff">turnoff</string>
+
+    <string name="title_activity_fullscreen">Wifi Hotspot by Intent</string>
+    <string name="turnon_button">Turn On</string>
+    <string name="turnoff_button">Turn Off</string>
+    <string name="dummy_content">TEST\nME</string>
+
+</resources>
