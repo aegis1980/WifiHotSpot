@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
 public class MagicActivity extends Activity {
@@ -77,12 +76,12 @@ public class MagicActivity extends Activity {
     }
 
     /**
-     * The whole purpose of this activity - to start {@link HotSpotIntentService}
+     * The whole purpose of this activity - to start {@link HotSpotService}
      * This may be called straright away in {@code onCreate} or after permissions granted.
      */
     private void carryOnWithHotSpotting() {
         Intent intent = getIntent();
-        HotSpotIntentService.start(this,intent);
+        HotSpotService.start(this,intent);
         finish();
     }
 

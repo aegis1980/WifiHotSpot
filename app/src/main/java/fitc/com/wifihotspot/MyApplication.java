@@ -1,6 +1,7 @@
 package fitc.com.wifihotspot;
 
 import android.app.Application;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.net.wifi.WifiManager;
 import android.util.Log;
@@ -60,6 +61,11 @@ public class MyApplication extends Application {
 		@Override
 		public void onStopped() {
 			super.onStopped();
+
+			//Stop background service. Stopping this will inturn cloase down everything.
+			Intent myService = new Intent(MyApplication.this, HotSpotService.class);
+			MyApplication.this.getApplicationContext().stopService(myService);
+
 			Log.d(TAG, "onStopped: ");
 		}
 

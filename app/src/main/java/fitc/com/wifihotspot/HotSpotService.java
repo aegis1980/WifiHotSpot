@@ -2,6 +2,7 @@ package fitc.com.wifihotspot;
 
 import android.Manifest;
 import android.app.IntentService;
+import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
 import android.content.pm.PackageManager;
@@ -9,13 +10,19 @@ import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.RequiresApi;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.lang.reflect.Method;
 
 import static android.content.ContentValues.TAG;
+import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in
@@ -24,7 +31,7 @@ import static android.content.ContentValues.TAG;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
-public class HotSpotIntentService extends IntentService {
+public class HotSpotService extends Service {
     // Action names...assigned in manifest.
     private  String ACTION_TURNON;
     private  String ACTION_TURNOFF;
@@ -42,7 +49,7 @@ public class HotSpotIntentService extends IntentService {
      * @param intent
      */
     public static void start(Context context,Intent intent) {
-        Intent i = new Intent(context, HotSpotIntentService.class);
+        Intent i = new Intent(context, HotSpotService.class);
         i.setAction(intent.getAction());
         i.setData(intent.getData());
         context.startService(i);
@@ -54,32 +61,66 @@ public class HotSpotIntentService extends IntentService {
      * @param intent
      */
     public static void startFromMagicActivity(Context context,Intent intent) {
-        Intent i = new Intent(context, HotSpotIntentService.class);
+        Intent i = new Intent(context, HotSpotService.class);
         i.setData(intent.getData());
         context.startService(i);
     }
 
+    //**********************************************************************************************
 
+    private Looper mServiceLooper;
+    private ServiceHandler mServiceHandler;
 
-    public HotSpotIntentService() {
-        super("HotSpotIntentService");
-
-
+    // Handler that receives messages from the thread
+    private final class ServiceHandler extends Handler {
+        public ServiceHandler(Looper looper) {
+            super(looper);
+        }
+        @Override
+        public void handleMessage(Message msg) {}
     }
 
+    //**********************************************************************************************
+
+
     @Override
-    protected void onHandleIntent(Intent intent) {
+    public void onCreate() {
         ACTION_TURNON = getString(R.string.intent_action_turnon);
         ACTION_TURNOFF = getString(R.string.intent_action_turnoff);
 
         DATAURI_TURNON = getString(R.string.intent_data_host_turnon);
         DATAURI_TURNOFF = getString(R.string.intent_data_host_turnoff);
+
+
+        // Start up the thread running the service.  Note that we create a
+        // separate thread because the service normally runs in the process's
+        // main thread, which we don't want to block.  We also make it
+        // background priority so CPU-intensive work will not disrupt our UI.
+        HandlerThread thread = new HandlerThread("ServiceStartArguments",
+                THREAD_PRIORITY_BACKGROUND);
+        thread.start();
+
+        // Get the HandlerThread's Looper and use it for our Handler
+        mServiceLooper = thread.getLooper();
+        mServiceHandler = new ServiceHandler(mServiceLooper);
+    }
+
+
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
+
+        // For each start request, send a message to start a job and deliver the
+        // start ID so we know which request we're stopping when we finish the job
+        Message msg = mServiceHandler.obtainMessage();
+        msg.arg1 = startId;
+        mServiceHandler.sendMessage(msg);
+
+
         Log.i(TAG,"Received start intent");
 
         mStartIntent = intent;
-
-        int version = Build.VERSION.SDK_INT;
-
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -88,9 +129,21 @@ public class HotSpotIntentService extends IntentService {
             carryOn();
         }
 
-
-
+        // If we get killed, after returning from here, restart
+        return START_STICKY;
     }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        // We don't provide binding, so return null
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i(TAG, "service done");
+    }
+
 
     private void carryOn() {
         boolean turnOn = true;

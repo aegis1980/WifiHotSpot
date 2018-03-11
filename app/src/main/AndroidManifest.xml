@@ -14,12 +14,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
-            android:name=".HotSpotIntentService"
+            android:name=".HotSpotService"
             android:enabled="true"
             android:exported="true"></service>
 
         <activity
-            android:name=".FullscreenActivity"
+            android:name=".TestMeActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme">

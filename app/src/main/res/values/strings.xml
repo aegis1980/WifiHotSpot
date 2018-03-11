@@ -12,6 +12,6 @@
     <string name="title_activity_fullscreen">Wifi Hotspot by Intent</string>
     <string name="turnon_button">Turn On</string>
     <string name="turnoff_button">Turn Off</string>
-    <string name="dummy_content">TEST\nME</string>
+    <string name="dummy_content">NOTE TO\nTHE UNINITIATED</string>
 
 </resources>
