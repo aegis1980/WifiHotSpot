@@ -38,10 +38,15 @@ public class HotSpotService extends Service {
     private  String DATAURI_TURNON;
     private  String DATAURI_TURNOFF;
     private Intent mStartIntent;
-    private WifiManager.LocalOnlyHotspotCallback localOnlyHotspotCallback;
+    private WifiManager.LocalOnlyHotspotReservation mHotspotReservation;
 
 
     private WifiManager.LocalOnlyHotspotReservation mReservation;
+
+    /**
+     * Flag for seeing if turning on in progress
+     */
+    private boolean mTurningOn;
 
     /**
      * Helper method to start this intent from {@link HotSpotIntentReceiver}
@@ -111,13 +116,6 @@ public class HotSpotService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
 
-        // For each start request, send a message to start a job and deliver the
-        // start ID so we know which request we're stopping when we finish the job
-        Message msg = mServiceHandler.obtainMessage();
-        msg.arg1 = startId;
-        mServiceHandler.sendMessage(msg);
-
-
         Log.i(TAG,"Received start intent");
 
         mStartIntent = intent;
@@ -158,6 +156,7 @@ public class HotSpotService extends Service {
 
             if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.O){
                 turnOnHotspotOreo(turnOn);
+
             } else {
                 turnOnHotspotPreOreo(turnOn);
             }
@@ -250,14 +249,49 @@ public class HotSpotService extends Service {
 
         if (turnOn) {
             try {
-                manager.startLocalOnlyHotspot(MyApplication.getInstance().getHotspotCallback(), null);
+                if (!mTurningOn) {
+                    mTurningOn = true;
+                    manager.startLocalOnlyHotspot(mLocalOnlyHotspotCallback, mServiceHandler);
+                }
             } catch (Exception e){
                 //
             }
-        } else if (MyApplication.getInstance().getHotspotReservation()!=null){
-            MyApplication.getInstance().getHotspotReservation().close();
+        } else if (!turnOn && mHotspotReservation!=null){
+            mHotspotReservation.close();
         }
     }
+
+
+    /**
+     *
+     */
+    WifiManager.LocalOnlyHotspotCallback mLocalOnlyHotspotCallback = new WifiManager.LocalOnlyHotspotCallback() {
+
+        @Override
+        public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
+            mTurningOn = false;
+            super.onStarted(reservation);
+            Log.d(TAG, "Wifi Hotspot is on now");
+            mHotspotReservation = reservation;
+        }
+
+        @Override
+        public void onStopped() {
+            mTurningOn = false;
+            super.onStopped();
+            stopSelf();
+            Log.d(TAG, "onStopped: ");
+        }
+
+        @Override
+        public void onFailed(int reason) {
+            mTurningOn = false;
+            super.onFailed(reason);
+            stopSelf();
+            Log.d(TAG, "onFailed: ");
+        }
+    };
+
 
 
 
