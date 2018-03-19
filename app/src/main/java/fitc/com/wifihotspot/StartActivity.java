@@ -3,6 +3,8 @@ package fitc.com.wifihotspot;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
+import android.provider.Settings;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -15,8 +17,8 @@ import android.view.View;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class TestMeActivity extends AppCompatActivity {
-    private static final String TAG =TestMeActivity.class.getSimpleName() ;
+public class StartActivity extends AppCompatActivity {
+    private static final String TAG =StartActivity.class.getSimpleName() ;
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -34,6 +36,7 @@ public class TestMeActivity extends AppCompatActivity {
      * and a change of the status and navigation bar.
      */
     private static final int UI_ANIMATION_DELAY = 300;
+    private static final int ACTION_MANAGE_WRITE_SETTINGS = 100 ;
 
     private final Handler mHideHandler = new Handler();
     private View mContentView;
@@ -121,6 +124,10 @@ public class TestMeActivity extends AppCompatActivity {
         // while interacting with the UI.
         findViewById(R.id.turnoff_button).setOnTouchListener(mOnButtonTouchListener);
         findViewById(R.id.turnon_button).setOnTouchListener(mOnButtonTouchListener);
+
+        settingPermission();
+
+
     }
 
     @Override
@@ -131,6 +138,22 @@ public class TestMeActivity extends AppCompatActivity {
         // created, to briefly hint to the user that UI controls
         // are available.
         delayedHide(100);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // Check which request we're responding to
+        if (requestCode == ACTION_MANAGE_WRITE_SETTINGS) {
+            // Make sure the request was successful
+            if (resultCode == RESULT_OK) {
+                // The user picked a contact.
+                // The Intent's data Uri identifies which contact was selected.
+
+                // Do something with the contact here (bigger example below)
+            } else {
+                settingPermission();
+            }
+        }
     }
 
     private void toggle() {
@@ -193,5 +216,18 @@ public class TestMeActivity extends AppCompatActivity {
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(uri);
         startActivity(i);
+    }
+
+
+
+    public void settingPermission() {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(getApplicationContext())) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(intent, ACTION_MANAGE_WRITE_SETTINGS);
+
+            }
+        }
     }
 }

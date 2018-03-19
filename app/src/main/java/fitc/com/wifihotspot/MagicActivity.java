@@ -2,19 +2,26 @@ package fitc.com.wifihotspot;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.PowerManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.WindowManager;
 
 public class MagicActivity extends Activity {
 
-    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 69 ;
+    private static final String TAG = MagicActivity.class.getSimpleName();
+    private static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 69;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.e(TAG, "onCreate");
+
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -30,7 +37,7 @@ public class MagicActivity extends Activity {
             } else {
 
                 // No explanation needed; request the permission
-               ActivityCompat.requestPermissions(this,
+                ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                         MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION);
 
@@ -46,7 +53,6 @@ public class MagicActivity extends Activity {
 
         //setContentView(R.layout.activity_magic);
     }
-
 
 
     @Override
@@ -81,7 +87,7 @@ public class MagicActivity extends Activity {
      */
     private void carryOnWithHotSpotting() {
         Intent intent = getIntent();
-        HotSpotService.start(this,intent);
+        HotSpotService.start(this, intent);
         finish();
     }
 

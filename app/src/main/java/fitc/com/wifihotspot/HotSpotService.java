@@ -2,6 +2,10 @@ package fitc.com.wifihotspot;
 
 import android.Manifest;
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.Context;
@@ -15,9 +19,9 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.lang.reflect.Method;
 
@@ -32,6 +36,13 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
  * helper methods.
  */
 public class HotSpotService extends Service {
+
+    /**
+     Id for running service in foreground
+     */
+    private static int FOREGROUND_ID=1338;
+    private static final String CHANNEL_ID = "control_app";
+
     // Action names...assigned in manifest.
     private  String ACTION_TURNON;
     private  String ACTION_TURNOFF;
@@ -40,8 +51,9 @@ public class HotSpotService extends Service {
     private Intent mStartIntent;
     private WifiManager.LocalOnlyHotspotReservation mHotspotReservation;
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    MyOreoWifiManager mMyOreoWifiManager;
 
-    private WifiManager.LocalOnlyHotspotReservation mReservation;
 
     /**
      * Flag for seeing if turning on in progress
@@ -71,10 +83,18 @@ public class HotSpotService extends Service {
         context.startService(i);
     }
 
+
+
+    public static void hotspotStatusChange(Context context, boolean isOn) {
+
+    }
+
     //**********************************************************************************************
 
     private Looper mServiceLooper;
     private ServiceHandler mServiceHandler;
+
+
 
     // Handler that receives messages from the thread
     private final class ServiceHandler extends Handler {
@@ -114,8 +134,7 @@ public class HotSpotService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
-
+       // Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
         Log.i(TAG,"Received start intent");
 
         mStartIntent = intent;
@@ -143,6 +162,15 @@ public class HotSpotService extends Service {
     }
 
 
+    /**
+     *
+     */
+    private void deferredStartForeground() {
+        startForeground(FOREGROUND_ID,
+                buildForegroundNotification());
+    }
+
+
     private void carryOn() {
         boolean turnOn = true;
         if (mStartIntent != null) {
@@ -150,65 +178,20 @@ public class HotSpotService extends Service {
             final String data = mStartIntent.getDataString();
             if (ACTION_TURNON.equals(action) || (data!=null && data.contains(DATAURI_TURNON))) {
                 turnOn = true;
+                Log.i(TAG,"Action/data to turn on hotspot");
             } else if (ACTION_TURNOFF.equals(action)|| (data!=null && data.contains(DATAURI_TURNOFF))) {
                 turnOn = false;
+                Log.i(TAG,"Action/data to turn off hotspot");
             }
 
             if (Build.VERSION.SDK_INT>= Build.VERSION_CODES.O){
-                turnOnHotspotOreo(turnOn);
-
+                hotspotOreo(turnOn);
             } else {
                 turnOnHotspotPreOreo(turnOn);
             }
         }
     }
 
-    /**
-     * Handle action Foo in the provided background thread with the provided
-     * parameters.
-     */
-    private void handleActionTurnOnOld() {
-
-
-        WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiManager.isWifiEnabled())
-
-        {
-            wifiManager.setWifiEnabled(false);
-        }
-
-        WifiConfiguration netConfig = new WifiConfiguration();
-
-        netConfig.SSID = "MyAP";
-        netConfig.allowedAuthAlgorithms.set(WifiConfiguration.AuthAlgorithm.OPEN);
-        netConfig.allowedProtocols.set(WifiConfiguration.Protocol.RSN);
-        netConfig.allowedProtocols.set(WifiConfiguration.Protocol.WPA);
-        netConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.NONE);
-
-        try
-
-        {
-            Method setWifiApMethod = wifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
-            boolean apstatus = (Boolean) setWifiApMethod.invoke(wifiManager, netConfig, true);
-
-            Method isWifiApEnabledmethod = wifiManager.getClass().getMethod("isWifiApEnabled");
-            while (!(Boolean) isWifiApEnabledmethod.invoke(wifiManager)) {
-            }
-            ;
-            Method getWifiApStateMethod = wifiManager.getClass().getMethod("getWifiApState");
-            int apstate = (Integer) getWifiApStateMethod.invoke(wifiManager);
-            Method getWifiApConfigurationMethod = wifiManager.getClass().getMethod("getWifiApConfiguration");
-            netConfig = (WifiConfiguration) getWifiApConfigurationMethod.invoke(wifiManager);
-            Log.e("CLIENT", "\nSSID:" + netConfig.SSID + "\nPassword:" + netConfig.preSharedKey + "\n");
-
-        } catch (
-                Exception e)
-
-        {
-            Log.e(this.getClass().toString(), "", e);
-        }
-
-    }
 
     private boolean turnOnHotspotPreOreo(boolean turnOn) {
         {
@@ -242,9 +225,11 @@ public class HotSpotService extends Service {
 
     /**
      * <a>https://stackoverflow.com/questions/45984345/how-to-turn-on-off-wifi-hotspot-programmatically-in-android-8-0-oreo/45996578#45996578}</a>
+     * This only open a local hotspot with no internet access. Fat load off good!
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void turnOnHotspotOreo(boolean turnOn){
+    @Deprecated
+    private void localHotspotOreo(boolean turnOn){
         WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
 
         if (turnOn) {
@@ -256,20 +241,117 @@ public class HotSpotService extends Service {
             } catch (Exception e){
                 //
             }
-        } else if (!turnOn && mHotspotReservation!=null){
-            mHotspotReservation.close();
+        } else{
+            if (mHotspotReservation!=null) {
+                mHotspotReservation.close();
+
+            } else {
+
+            }
+            stopForeground(true);
+            stopSelf();
         }
+
     }
+
+
 
 
     /**
      *
      */
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void hotspotOreo(boolean turnOn){
+
+        if (mMyOreoWifiManager ==null){
+            mMyOreoWifiManager = new MyOreoWifiManager(this);
+        }
+
+        if (turnOn) {
+            MyOnStartTetheringCallback callback = new MyOnStartTetheringCallback() {
+                @Override
+                public void onTetheringStarted() {
+                    startForeground(FOREGROUND_ID,
+                            buildForegroundNotification());
+                }
+
+                @Override
+                public void onTetheringFailed() {
+
+                }
+            };
+
+            mMyOreoWifiManager.startTethering(callback,mServiceHandler);
+        } else{
+            mMyOreoWifiManager.stopTethering();
+            stopForeground(true);
+            stopSelf();
+        }
+
+    }
+
+    //****************************************************************************************
+
+
+    /**
+     * Build low priority notification for running this service as a foreground service.
+     * @return
+     */
+    private Notification buildForegroundNotification() {
+        registerNotifChnnl(this);
+
+        Intent stopIntent = new Intent(this, HotSpotService.class);
+        stopIntent.setAction(getString(R.string.intent_action_turnoff));
+
+        PendingIntent pendingIntent = PendingIntent.getService(this,0, stopIntent, 0);
+
+        NotificationCompat.Builder b=new NotificationCompat.Builder(this,CHANNEL_ID);
+        b.setOngoing(true)
+                .setContentTitle("WifiHotSpot is On")
+                .addAction(new NotificationCompat.Action(
+                        R.drawable.turn_off,
+                        "TURN OFF HOTSPOT",
+                        pendingIntent
+                ))
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setCategory(Notification.CATEGORY_SERVICE)
+                .setSmallIcon(R.drawable.notif_hotspot_black_24dp);
+        
+
+        return(b.build());
+    }
+
+
+    private static void registerNotifChnnl(Context context) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            NotificationManager mngr = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+            if (mngr.getNotificationChannel(CHANNEL_ID) != null) {
+                return;
+            }
+            //
+            NotificationChannel channel = new NotificationChannel(
+                    CHANNEL_ID,
+                    context.getString(R.string.notification_chnnl),
+                    NotificationManager.IMPORTANCE_LOW);
+            // Configure the notification channel.
+            channel.setDescription(context.getString(R.string.notification_chnnl_location_descr));
+            channel.enableLights(false);
+            channel.enableVibration(false);
+            mngr.createNotificationChannel(channel);
+        }
+    }
+
+
+    /**
+     * This is all to do with Local Hot spots
+     */
+    @Deprecated
     WifiManager.LocalOnlyHotspotCallback mLocalOnlyHotspotCallback = new WifiManager.LocalOnlyHotspotCallback() {
 
         @Override
         public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
             mTurningOn = false;
+            deferredStartForeground();
             super.onStarted(reservation);
             Log.d(TAG, "Wifi Hotspot is on now");
             mHotspotReservation = reservation;
@@ -279,6 +361,8 @@ public class HotSpotService extends Service {
         public void onStopped() {
             mTurningOn = false;
             super.onStopped();
+
+            stopForeground(true);
             stopSelf();
             Log.d(TAG, "onStopped: ");
         }
@@ -287,12 +371,12 @@ public class HotSpotService extends Service {
         public void onFailed(int reason) {
             mTurningOn = false;
             super.onFailed(reason);
+
+            stopForeground(true);
             stopSelf();
             Log.d(TAG, "onFailed: ");
         }
     };
-
-
 
 
 

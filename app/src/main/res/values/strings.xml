@@ -14,4 +14,7 @@
     <string name="turnoff_button">Turn Off</string>
     <string name="dummy_content">NOTE TO\nTHE UNINITIATED</string>
 
+    <string name="notification_chnnl">Hot Spot</string>
+    <string name="notification_chnnl_location_descr">Keeps wifi hot spot persistent</string>
+
 </resources>
