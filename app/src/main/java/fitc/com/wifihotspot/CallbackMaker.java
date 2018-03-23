@@ -18,8 +18,8 @@ import java.lang.reflect.Modifier;
  */
 
 public final class CallbackMaker {
-    private static final String ON_TETHERING_STARTED = "onTetheringStarted";
-    private static final String ON_TETHERING_STOPPED = "onTetheringStopped";
+    private static final String ON_TETHERING_STARTED_METHOD = "onTetheringStarted";
+    private static final String ON_TETHERING_STOPPED_METHOD = "onTetheringStopped";
     private final MyOnStartTetheringCallback mAppCallBack;
     Context mContext;
     Class <?> myTetheringCallbackClazz;
@@ -56,8 +56,8 @@ public final class CallbackMaker {
 
         // TODO: Not working
          //generateConstructor(tetheringCallback,systemCallbackTypeId,myCallbackFieldId);
-        //  generateCallbackMethod(myTetheringCallback,callbackFieldId, ON_TETHERING_STARTED) ;
-        //   generateCallbackMethod(myTetheringCallback,callbackFieldId, ON_TETHERING_STOPPED) ;
+        //  generateCallbackMethod(myTetheringCallback,callbackFieldId, ON_TETHERING_STARTED_METHOD) ;
+        //   generateCallbackMethod(myTetheringCallback,callbackFieldId, ON_TETHERING_STOPPED_METHOD) ;
 
         // Create the dex file and load it.
         File outputDir = mContext.getCodeCacheDir();

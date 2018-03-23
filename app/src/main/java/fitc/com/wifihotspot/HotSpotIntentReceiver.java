@@ -12,6 +12,6 @@ public class HotSpotIntentReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         Log.i(TAG,"Received intent");
-        HotSpotService.startFromMagicActivity(context,intent);
+        HotSpotIntentService.startFromMagicActivity(context,intent);
     }
 }

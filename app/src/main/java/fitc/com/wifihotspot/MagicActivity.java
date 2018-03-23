@@ -51,7 +51,6 @@ public class MagicActivity extends Activity {
             carryOnWithHotSpotting();
         }
 
-        //setContentView(R.layout.activity_magic);
     }
 
 
@@ -87,7 +86,7 @@ public class MagicActivity extends Activity {
      */
     private void carryOnWithHotSpotting() {
         Intent intent = getIntent();
-        HotSpotService.start(this, intent);
+        HotSpotIntentService.start(this, intent);
         finish();
     }
 

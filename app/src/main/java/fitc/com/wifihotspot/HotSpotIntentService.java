@@ -7,10 +7,9 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.wifi.WifiConfiguration;
 import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
@@ -18,6 +17,7 @@ import android.os.HandlerThread;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
@@ -35,7 +35,7 @@ import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
  * TODO: Customize class - update intent actions, extra parameters and static
  * helper methods.
  */
-public class HotSpotService extends Service {
+public class HotSpotIntentService extends IntentService {
 
     /**
      Id for running service in foreground
@@ -49,16 +49,19 @@ public class HotSpotService extends Service {
     private  String DATAURI_TURNON;
     private  String DATAURI_TURNOFF;
     private Intent mStartIntent;
-    private WifiManager.LocalOnlyHotspotReservation mHotspotReservation;
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     MyOreoWifiManager mMyOreoWifiManager;
 
 
     /**
-     * Flag for seeing if turning on in progress
+     * Creates an IntentService.  Invoked by your subclass's constructor.
+     *
+
      */
-    private boolean mTurningOn;
+    public HotSpotIntentService() {
+        super("HotSpotIntentService");
+    }
 
     /**
      * Helper method to start this intent from {@link HotSpotIntentReceiver}
@@ -66,7 +69,7 @@ public class HotSpotService extends Service {
      * @param intent
      */
     public static void start(Context context,Intent intent) {
-        Intent i = new Intent(context, HotSpotService.class);
+        Intent i = new Intent(context, HotSpotIntentService.class);
         i.setAction(intent.getAction());
         i.setData(intent.getData());
         context.startService(i);
@@ -78,63 +81,20 @@ public class HotSpotService extends Service {
      * @param intent
      */
     public static void startFromMagicActivity(Context context,Intent intent) {
-        Intent i = new Intent(context, HotSpotService.class);
+        Intent i = new Intent(context, HotSpotIntentService.class);
         i.setData(intent.getData());
         context.startService(i);
     }
 
-
-
-    public static void hotspotStatusChange(Context context, boolean isOn) {
-
-    }
-
-    //**********************************************************************************************
-
-    private Looper mServiceLooper;
-    private ServiceHandler mServiceHandler;
-
-
-
-    // Handler that receives messages from the thread
-    private final class ServiceHandler extends Handler {
-        public ServiceHandler(Looper looper) {
-            super(looper);
-        }
-        @Override
-        public void handleMessage(Message msg) {}
-    }
-
-    //**********************************************************************************************
-
-
     @Override
-    public void onCreate() {
+    protected void onHandleIntent(@Nullable Intent intent) {
         ACTION_TURNON = getString(R.string.intent_action_turnon);
         ACTION_TURNOFF = getString(R.string.intent_action_turnoff);
 
         DATAURI_TURNON = getString(R.string.intent_data_host_turnon);
         DATAURI_TURNOFF = getString(R.string.intent_data_host_turnoff);
 
-
-        // Start up the thread running the service.  Note that we create a
-        // separate thread because the service normally runs in the process's
-        // main thread, which we don't want to block.  We also make it
-        // background priority so CPU-intensive work will not disrupt our UI.
-        HandlerThread thread = new HandlerThread("ServiceStartArguments",
-                THREAD_PRIORITY_BACKGROUND);
-        thread.start();
-
-        // Get the HandlerThread's Looper and use it for our Handler
-        mServiceLooper = thread.getLooper();
-        mServiceHandler = new ServiceHandler(mServiceLooper);
-    }
-
-
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-       // Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "service starting", Toast.LENGTH_SHORT).show();
         Log.i(TAG,"Received start intent");
 
         mStartIntent = intent;
@@ -146,21 +106,7 @@ public class HotSpotService extends Service {
             carryOn();
         }
 
-        // If we get killed, after returning from here, restart
-        return START_STICKY;
     }
-
-    @Override
-    public IBinder onBind(Intent intent) {
-        // We don't provide binding, so return null
-        return null;
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.i(TAG, "service done");
-    }
-
 
     /**
      *
@@ -224,40 +170,6 @@ public class HotSpotService extends Service {
     }
 
     /**
-     * <a>https://stackoverflow.com/questions/45984345/how-to-turn-on-off-wifi-hotspot-programmatically-in-android-8-0-oreo/45996578#45996578}</a>
-     * This only open a local hotspot with no internet access. Fat load off good!
-     */
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    @Deprecated
-    private void localHotspotOreo(boolean turnOn){
-        WifiManager manager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-        if (turnOn) {
-            try {
-                if (!mTurningOn) {
-                    mTurningOn = true;
-                    manager.startLocalOnlyHotspot(mLocalOnlyHotspotCallback, mServiceHandler);
-                }
-            } catch (Exception e){
-                //
-            }
-        } else{
-            if (mHotspotReservation!=null) {
-                mHotspotReservation.close();
-
-            } else {
-
-            }
-            stopForeground(true);
-            stopSelf();
-        }
-
-    }
-
-
-
-
-    /**
      *
      */
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -268,6 +180,8 @@ public class HotSpotService extends Service {
         }
 
         if (turnOn) {
+
+            //this dont work
             MyOnStartTetheringCallback callback = new MyOnStartTetheringCallback() {
                 @Override
                 public void onTetheringStarted() {
@@ -281,7 +195,7 @@ public class HotSpotService extends Service {
                 }
             };
 
-            mMyOreoWifiManager.startTethering(callback,mServiceHandler);
+            mMyOreoWifiManager.startTethering(callback,null);
         } else{
             mMyOreoWifiManager.stopTethering();
             stopForeground(true);
@@ -300,7 +214,7 @@ public class HotSpotService extends Service {
     private Notification buildForegroundNotification() {
         registerNotifChnnl(this);
 
-        Intent stopIntent = new Intent(this, HotSpotService.class);
+        Intent stopIntent = new Intent(this, HotSpotIntentService.class);
         stopIntent.setAction(getString(R.string.intent_action_turnoff));
 
         PendingIntent pendingIntent = PendingIntent.getService(this,0, stopIntent, 0);
@@ -340,45 +254,6 @@ public class HotSpotService extends Service {
             mngr.createNotificationChannel(channel);
         }
     }
-
-
-    /**
-     * This is all to do with Local Hot spots
-     */
-    @Deprecated
-    WifiManager.LocalOnlyHotspotCallback mLocalOnlyHotspotCallback = new WifiManager.LocalOnlyHotspotCallback() {
-
-        @Override
-        public void onStarted(WifiManager.LocalOnlyHotspotReservation reservation) {
-            mTurningOn = false;
-            deferredStartForeground();
-            super.onStarted(reservation);
-            Log.d(TAG, "Wifi Hotspot is on now");
-            mHotspotReservation = reservation;
-        }
-
-        @Override
-        public void onStopped() {
-            mTurningOn = false;
-            super.onStopped();
-
-            stopForeground(true);
-            stopSelf();
-            Log.d(TAG, "onStopped: ");
-        }
-
-        @Override
-        public void onFailed(int reason) {
-            mTurningOn = false;
-            super.onFailed(reason);
-
-            stopForeground(true);
-            stopSelf();
-            Log.d(TAG, "onFailed: ");
-        }
-    };
-
-
 
 }
 
