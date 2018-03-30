@@ -1,4 +1,4 @@
-package fitc.com.wifihotspot;
+package com.fitc.wifihotspot;
 
 public abstract class MyOnStartTetheringCallback {
         /**

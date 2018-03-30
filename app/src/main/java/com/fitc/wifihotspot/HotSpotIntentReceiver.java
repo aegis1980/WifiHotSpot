@@ -1,4 +1,4 @@
-package fitc.com.wifihotspot;
+package com.fitc.wifihotspot;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="fitc.com.wifihotspot" >
+    package="com.fitc.wifihotspot">
 
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
-    <uses-permission android:name="android.permission.TETHER_PRIVILEGE"/>
+    <uses-permission android:name="android.permission.TETHER_PRIVILEGE" />
 
     <application
         android:allowBackup="true"
@@ -15,53 +15,38 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
-            android:name=".HotSpotIntentService"
+            android:name="com.fitc.wifihotspot.HotSpotIntentService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
 
-        <activity
-            android:name=".StartActivity"
-            android:configChanges="orientation|keyboardHidden|screenSize"
-            android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme">
+        <activity android:name="com.fitc.wifihotspot.MainActivity"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <receiver
-            android:name=".HotSpotIntentReceiver"
+            android:name="com.fitc.wifihotspot.HotSpotIntentReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="@string/intent_action_turnon" />
                 <action android:name="@string/intent_action_turnoff" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-
-                <action android:name="android.intent.action.VIEW" />
-
-                <data android:scheme="@string/intent_data_scheme" />
             </intent-filter>
         </receiver>
 
-        <activity android:name=".MagicActivity" android:theme="@style/Theme.Transparent">
+        <activity
+            android:name="com.fitc.wifihotspot.MagicActivity"
+            android:theme="@style/Theme.Transparent">
             <intent-filter>
-                <action android:name="@string/intent_action_turnon" />
-                <action android:name="@string/intent_action_turnoff" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-
                 <action android:name="android.intent.action.VIEW" />
-
                 <data android:scheme="@string/intent_data_scheme" />
             </intent-filter>
         </activity>
-
 
     </application>
 

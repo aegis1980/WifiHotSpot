@@ -1,4 +1,4 @@
-package fitc.com.wifihotspot;
+package com.fitc.wifihotspot;
 
 import android.Manifest;
 import android.app.IntentService;
@@ -6,17 +6,11 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
-import android.os.IBinder;
-import android.os.Looper;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
@@ -26,7 +20,6 @@ import android.util.Log;
 import java.lang.reflect.Method;
 
 import static android.content.ContentValues.TAG;
-import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
  * An {@link IntentService} subclass for handling asynchronous task requests in

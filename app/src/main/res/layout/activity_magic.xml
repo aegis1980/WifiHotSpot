@@ -4,6 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="fitc.com.wifihotspot.MagicActivity">
+    tools:context="com.fitc.wifihotspot.MagicActivity">
 
 </android.support.constraint.ConstraintLayout>

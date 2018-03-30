@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Wifi HotSpot</string>
+    <string name="app_name">Oreo Wifi HotSpot</string>
 
 
     <string name="intent_action_turnon">com.fitc.wifihotspot.TURN_ON</string>
@@ -9,12 +9,13 @@
     <string name="intent_data_host_turnon">turnon</string>
     <string name="intent_data_host_turnoff">turnoff</string>
 
-    <string name="title_activity_fullscreen">Wifi Hotspot by Intent</string>
     <string name="turnon_button">Turn On</string>
     <string name="turnoff_button">Turn Off</string>
     <string name="dummy_content">NOTE TO\nTHE UNINITIATED</string>
 
     <string name="notification_chnnl">Hot Spot</string>
     <string name="notification_chnnl_location_descr">Keeps wifi hot spot persistent</string>
+
+    <string name="needpermissions">com.fitc.wifihotspot.NEED_PERMISSION</string>
 
 </resources>
