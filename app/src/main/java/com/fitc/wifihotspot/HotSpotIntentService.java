@@ -68,17 +68,6 @@ public class HotSpotIntentService extends IntentService {
         context.startService(i);
     }
 
-    /**
-     * Helper method to start this intent from {@link HotSpotIntentReceiver}
-     * @param context
-     * @param intent
-     */
-    public static void startFromMagicActivity(Context context,Intent intent) {
-        Intent i = new Intent(context, HotSpotIntentService.class);
-        i.setData(intent.getData());
-        context.startService(i);
-    }
-
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
         ACTION_TURNON = getString(R.string.intent_action_turnon);
@@ -99,14 +88,6 @@ public class HotSpotIntentService extends IntentService {
             carryOn();
         }
 
-    }
-
-    /**
-     *
-     */
-    private void deferredStartForeground() {
-        startForeground(FOREGROUND_ID,
-                buildForegroundNotification());
     }
 
 
@@ -223,7 +204,7 @@ public class HotSpotIntentService extends IntentService {
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setCategory(Notification.CATEGORY_SERVICE)
                 .setSmallIcon(R.drawable.notif_hotspot_black_24dp);
-        
+
 
         return(b.build());
     }
