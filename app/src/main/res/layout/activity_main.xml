@@ -1,96 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="6dp"
+    android:background="#ccc"
     tools:context="com.fitc.wifihotspot.MainActivity">
-    <TextView
 
-        android:layout_width="wrap_content"
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        card_view:cardBackgroundColor="@color/cardview_light_background"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
-        android:text="You can..." />
+        card_view:cardCornerRadius="1dp">
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:text="Toggle HotSpot With Actions" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_marginTop="6dp"
+                android:layout_height="wrap_content"
+                android:text="To turn ON, send an Intent with action:" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="@string/intent_action_turnon"
+                />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="onClickTurnOnAction"
+                android:text="Test: On with Action"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="To turn OFF, send an Intent with action:" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:text="@string/intent_action_turnoff"
+                />
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:onClick="onClickTurnOffAction"
+                android:text="Test: Off with Action"/>
+        </LinearLayout>
 
-    <TextView
 
-        android:layout_width="wrap_content"
+    </android.support.v7.widget.CardView>
+
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        card_view:cardBackgroundColor="@color/cardview_light_background"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:text="Toggle HotSpot With Actions" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To turn ON, send an Intent with action:" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="@string/intent_action_turnon"
-        />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="onClickTurnOnAction"
-        android:text="Test: On with Action"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To turn OFF, send an Intent with action:" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="@string/intent_action_turnoff"
-        />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="onClickTurnOffAction"
-        android:text="Test: Off with Action"/>
+        android:layout_marginTop="8dp"
+        card_view:cardCornerRadius="1dp">
+        <LinearLayout
+            android:orientation="vertical"
+            android:padding="6dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:text="Toggle HotSpot With Data" />
+            <TextView
+                android:layout_marginTop="6dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To turn ON, send and Intent with data. This effectively opens a custom link:" />
+            <TextView
+                android:id="@+id/linkon_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:linksClickable="true"
+                android:text="@string/on_uri"
+                android:layout_gravity="center"
+                android:layout_margin="12dp"
+                android:focusable="true"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="To turn OFF," />
+            <TextView
+                android:id="@+id/linkoff_tv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:linksClickable="true"
+                android:text="@string/off_uri"
+                android:layout_gravity="center"
+                android:layout_margin="12dp"
+                android:focusable="true"
+                />
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:textSize="20sp"
-        android:text="OR,\n  Toggle HotSpot With Data" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To turn ON, send and Intent with data:" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="@string/intent_action_turnon"
-        />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="onClickTurnOnData"
-        android:text="Test: On with Data"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="To turn OFF, send an Intent with data:" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textStyle="bold"
-        android:text="@string/intent_data_host_turnoff"
-        />
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:onClick="onClickTurnOffData"
-        android:text="Test: Off with Data"/>
+        </LinearLayout>
+
+
+    </android.support.v7.widget.CardView>
+
+
+
 </LinearLayout>

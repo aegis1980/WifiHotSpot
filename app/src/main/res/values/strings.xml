@@ -8,6 +8,8 @@
     <string name="intent_data_scheme">wifihotspot</string>
     <string name="intent_data_host_turnon">turnon</string>
     <string name="intent_data_host_turnoff">turnoff</string>
+    <string name="on_uri"><a href="wifihotspot://turnon">wifihotspot://turnon</a></string>
+    <string name="off_uri"><a href="wifihotspot://turnoff">wifihotspot://turnoff</a></string>
 
     <string name="turnon_button">Turn On</string>
     <string name="turnoff_button">Turn Off</string>
@@ -17,5 +19,6 @@
     <string name="notification_chnnl_location_descr">Keeps wifi hot spot persistent</string>
 
     <string name="needpermissions">com.fitc.wifihotspot.NEED_PERMISSION</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>

@@ -22,14 +22,17 @@ public abstract class PermissionsActivity extends Activity {
     static final int MY_PERMISSIONS_REQUEST_ACCESS_COARSE_LOCATION = 69;
 
     private boolean mLocationPermission = false;
-    private boolean mSettingPermission = false;
+    private boolean mSettingPermission = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         settingPermission();
-        locationsPermission();
+        /**
+         * Locations permission done in onActrivityResult
+         */
+         locationsPermission();
 
         if (mLocationPermission && mSettingPermission) onPermissionsOkay();
     }
@@ -37,6 +40,7 @@ public abstract class PermissionsActivity extends Activity {
 
     private void settingPermission() {
         mSettingPermission = true;
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.System.canWrite(getApplicationContext())) {
                 mSettingPermission = false;
@@ -82,6 +86,7 @@ public abstract class PermissionsActivity extends Activity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 mSettingPermission = true;
+                if (!mLocationPermission) locationsPermission();
             } else {
                 settingPermission();
             }
@@ -91,6 +96,7 @@ public abstract class PermissionsActivity extends Activity {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 mLocationPermission = true;
+                if (!mSettingPermission) settingPermission();
             } else {
                 locationsPermission();
             }

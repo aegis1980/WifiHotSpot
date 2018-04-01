@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import static android.content.ContentValues.TAG;
 
 public class HotSpotIntentReceiver extends BroadcastReceiver {
 
