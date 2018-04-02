@@ -17,6 +17,8 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
+import com.fitc.wifihotspot.receiver.HotSpotIntentReceiver;
+
 import java.lang.reflect.Method;
 
 import static android.content.ContentValues.TAG;

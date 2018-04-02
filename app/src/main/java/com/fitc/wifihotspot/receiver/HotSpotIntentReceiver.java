@@ -1,9 +1,12 @@
-package com.fitc.wifihotspot;
+package com.fitc.wifihotspot.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+
+import com.fitc.wifihotspot.MagicActivity;
+import com.fitc.wifihotspot.R;
 
 
 public class HotSpotIntentReceiver extends BroadcastReceiver {

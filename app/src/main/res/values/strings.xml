@@ -20,5 +20,7 @@
 
     <string name="needpermissions">com.fitc.wifihotspot.NEED_PERMISSION</string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="actions_note">Send an (Implicit )Intent with an actions below in bold. Note that in OREO this is no longer as trivial as it used to be. <a href="http://www.floatingintheclouds.com/app-wifi-hot-spot-on-oreo/">More info here</a>.</string>
+    <string name="instructions"><a href="http://www.floatingintheclouds.com/app-wifi-hot-spot-on-oreo/">INSTRUCTIONS</a></string>
 
 </resources>
