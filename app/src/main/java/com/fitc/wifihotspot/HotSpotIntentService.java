@@ -168,7 +168,7 @@ public class HotSpotIntentService extends IntentService {
                 }
             };
 
-            mMyOreoWifiManager.startTethering(callback,null);
+            mMyOreoWifiManager.startTethering(callback);
         } else{
             mMyOreoWifiManager.stopTethering();
             stopForeground(true);
