@@ -2,13 +2,17 @@ package com.fitc.wifihotspot;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
+import android.net.wifi.WifiConfiguration;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import com.android.dx.stock.ProxyBuilder;
+
+import java.io.File;
+import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
@@ -17,95 +21,110 @@ import java.lang.reflect.Method;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
 public class MyOreoWifiManager {
-
-    /**
-     * From {@link ConnectivityManager}
-     */
-    private static final int TETHERING_WIFI      = 0;
-
     private static final String TAG = MyOreoWifiManager.class.getSimpleName();
 
     private Context mContext;
+    private WifiManager mWifiManager;
+    private ConnectivityManager mConnectivityManager;
 
-    public MyOreoWifiManager(Context c){
+    public MyOreoWifiManager(Context c) {
         mContext = c;
+        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
+        mConnectivityManager = (ConnectivityManager) mContext.getSystemService(ConnectivityManager.class);
     }
 
-    public void startTethering(MyOnStartTetheringCallback callback, Handler handler){
-
-        CallbackMaker cm = new CallbackMaker(mContext, callback);
-        Class<?> mSystemCallbackClazz = cm.getCallBackClass();
-        Object mSystemCallback = null;
+    /**
+     * This sets the Wifi SSID and password
+     * Call this before {@code startTethering} if app is a system/privileged app
+     * Requires: android.permission.TETHER_PRIVILEGED which is only granted to system apps
+     */
+    public void configureHotspot(String name, String password) {
+        WifiConfiguration apConfig = new WifiConfiguration();
+        apConfig.SSID = name;
+        apConfig.preSharedKey = password;
+        apConfig.allowedKeyManagement.set(WifiConfiguration.KeyMgmt.WPA_PSK);
         try {
-
-
-          //  Constructor constructor = mSystemCallbackClazz.getDeclaredConstructor(callback.getClass());
-          //  mSystemCallback = constructor.newInstance(callback);
-
-            Constructor constructor = mSystemCallbackClazz.getDeclaredConstructor(int.class);
-            mSystemCallback = constructor.newInstance(0);
-
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e){
+            Method setConfigMethod = mWifiManager.getClass().getMethod("setWifiApConfiguration", WifiConfiguration.class);
+            boolean status = (boolean) setConfigMethod.invoke(mWifiManager, apConfig);
+            Log.d(TAG, "setWifiApConfiguration - success? " + status);
+        } catch (Exception e) {
+            Log.e(TAG, "Error in configureHotspot");
             e.printStackTrace();
         }
+    }
 
-        ConnectivityManager manager = (ConnectivityManager) mContext.getApplicationContext().getSystemService(ConnectivityManager.class );
-        Method method = null;
-        Class callbackClass = null;
+    /**
+     * This enables tethering using the ssid/password defined in Settings App>Hotspot & tethering
+     * Does not require app to have system/privileged access
+     * Credit: Vishal Sharma - https://stackoverflow.com/a/52219887
+     */
+    public boolean startTethering(final MyOnStartTetheringCallback callback) {
+        File outputDir = mContext.getCodeCacheDir();
+        Object proxy;
         try {
-            try {
-                callbackClass = Class.forName("android.net.ConnectivityManager$OnStartTetheringCallback");
+            proxy = ProxyBuilder.forClass(OnStartTetheringCallbackClass())
+                    .dexCache(outputDir).handler(new InvocationHandler() {
+                        @Override
+                        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                            switch (method.getName()) {
+                                case "onTetheringStarted":
+                                    callback.onTetheringStarted();
+                                    break;
+                                case "onTetheringFailed":
+                                    callback.onTetheringFailed();
+                                    break;
+                                default:
+                                    ProxyBuilder.callSuper(proxy, method, args);
+                            }
+                            return null;
+                        }
 
+                    }).build();
+        } catch (Exception e) {
+            Log.e(TAG, "Error in enableTethering ProxyBuilder");
+            e.printStackTrace();
+            return false;
+        }
 
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-
-            method = manager.getClass().getDeclaredMethod("startTethering",int.class,boolean.class,callbackClass,Handler.class);
-
-            if (method==null){
+        Method method = null;
+        try {
+            method = mConnectivityManager.getClass().getDeclaredMethod("startTethering", int.class, boolean.class, OnStartTetheringCallbackClass(), Handler.class);
+            if (method == null) {
                 Log.e(TAG, "startTetheringMethod is null");
             } else {
-                method.invoke(manager,TETHERING_WIFI,false,mSystemCallback,handler);
+                method.invoke(mConnectivityManager, ConnectivityManager.TYPE_MOBILE, false, proxy, null);
+                Log.d(TAG, "startTethering invoked");
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, "Error in enableTethering");
             e.printStackTrace();
         }
+        return false;
     }
-
-
 
     public void stopTethering() {
-
-        ConnectivityManager manager = (ConnectivityManager) mContext.getApplicationContext().getSystemService(ConnectivityManager.class );
-
         try {
-            Method method = manager.getClass().getDeclaredMethod("stopTethering",int.class);
-
-            if (method==null){
+            Method method = mConnectivityManager.getClass().getDeclaredMethod("stopTethering", int.class);
+            if (method == null) {
                 Log.e(TAG, "stopTetheringMethod is null");
             } else {
-                method.invoke(manager,TETHERING_WIFI);
+                method.invoke(mConnectivityManager, ConnectivityManager.TYPE_MOBILE);
+                Log.d(TAG, "stopTethering invoked");
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        }catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
+        } catch (Exception e) {
+            Log.e(TAG, "stopTethering error: " + e.toString());
             e.printStackTrace();
         }
     }
 
-
-
+    private Class OnStartTetheringCallbackClass() {
+        try {
+            return Class.forName("android.net.ConnectivityManager$OnStartTetheringCallback");
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG, "OnStartTetheringCallbackClass error: " + e.toString());
+            e.printStackTrace();
+        }
+        return null;
+    }
 }
