@@ -14,6 +14,7 @@ import com.android.dx.stock.ProxyBuilder;
 import java.io.File;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * Created by jonro on 19/03/2018.
@@ -54,11 +55,46 @@ public class MyOreoWifiManager {
     }
 
     /**
+     * Checks where tethering is on.
+     * This is determined by the getTetheredIfaces() method,
+     * that will return an empty array if not devices are tethered
+     *
+     * @return true if a tethered device is found, false if not found
+     */
+    public boolean isTetherActive() {
+        try {
+            Method method = mConnectivityManager.getClass().getDeclaredMethod("getTetheredIfaces");
+            if (method == null) {
+                Log.e(TAG, "getTetheredIfaces is null");
+            } else {
+                String res[] = (String []) method.invoke(mConnectivityManager, null);
+                Log.d(TAG, "getTetheredIfaces invoked");
+                Log.d(TAG, Arrays.toString(res));
+                if (res.length > 0) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error in getTetheredIfaces");
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
      * This enables tethering using the ssid/password defined in Settings App>Hotspot & tethering
      * Does not require app to have system/privileged access
      * Credit: Vishal Sharma - https://stackoverflow.com/a/52219887
      */
     public boolean startTethering(final MyOnStartTetheringCallback callback) {
+
+        // On Pie if we try to start tethering while it is already on, it will
+        // be disabled. This is needed when startTethering() is called programmatically.
+        if (isTetherActive()) {
+            Log.d(TAG, "Tether already active, returning");
+            return false;
+        }
+
         File outputDir = mContext.getCodeCacheDir();
         Object proxy;
         try {
